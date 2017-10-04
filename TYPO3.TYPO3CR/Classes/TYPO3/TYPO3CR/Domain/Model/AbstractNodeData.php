@@ -211,12 +211,14 @@ abstract class AbstractNodeData
      */
     protected function persistRelatedEntities($value)
     {
+        static $cache = [];
         if (!is_array($value) && !$value instanceof \Iterator) {
-            $value = array($value);
+            $value = [$value];
         }
         foreach ($value as $element) {
-            if (is_object($element) && $element instanceof PersistenceMagicInterface) {
+            if (is_object($element) && $element instanceof PersistenceMagicInterface && (isset($cache[$this->persistenceManager->getIdentifierByObject($element)]) && $cache[$this->persistenceManager->getIdentifierByObject($element)] !== true)) {
                 $this->persistenceManager->isNewObject($element) ? $this->persistenceManager->add($element) : $this->persistenceManager->update($element);
+                $cache[$this->persistenceManager->getIdentifierByObject($element)] = true;
             }
         }
     }
